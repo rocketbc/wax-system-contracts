@@ -737,15 +737,32 @@ namespace eosiosystem {
                 }*/
                 check( (*pitr).status != PROPOSAL_STATUS::ON_VOTE, ( pitr->proposer.to_string() + "'s proposal is not currently on vote" ).data() );
                 //double init_total_votes = pitr->total_votes;
-                _proposals.modify( pitr, same_payer, [&]( auto& p ) {
-                    p.total_votes += pd.second.first;
-                    if ( p.total_votes < 0 ) { // floating point arithmetics can give small negative numbers
-                        p.total_votes = 0;
-                    }
-                    //_gstate.total_producer_vote_weight += pd.second.first;
-                    //check( p.total_votes >= 0, "something bad happened" );
-                });
 
+                time_point_sec current_time = current_time_point();
+                auto wps_env = _wps_env.get();
+                uint32_t duration_of_voting = wps_env.duration_of_voting * seconds_per_day;
+
+                if(time_point_sec(time_point(current_time - (*pitr).vote_start_time)) >= time_point_sec(duration_of_voting)) {
+                    _proposals.modify(pitr, same_payer, [&](auto &proposal) {
+                        proposal.status = PROPOSAL_STATUS::REJECTED;
+                    });
+                }
+                else{
+                    _proposals.modify( pitr, same_payer, [&]( auto& p ) {
+                        p.total_votes += pd.second.first;
+                        if ( p.total_votes < 0 ) { // floating point arithmetics can give small negative numbers
+                            p.total_votes = 0;
+                        }
+                        //_gstate.total_producer_vote_weight += pd.second.first;
+                        //check( p.total_votes >= 0, "something bad happened" );
+                    });
+
+                    if((*pitr).total_votes > _gstate.total_activated_stake / (100/wps_env.total_voting_percent)){
+                        _proposals.modify( pitr, same_payer, [&]( auto& p ) {
+                            p.status = PROPOSAL_STATUS::FINISHED_VOTING;
+                        });
+                    }
+                }
             } else {
                 if( pd.second.second ) {
                     check( false, ( pd.first.to_string() + "does not have an existing proposal" ).data() );
