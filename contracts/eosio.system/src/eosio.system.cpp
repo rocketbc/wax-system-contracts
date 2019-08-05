@@ -4,6 +4,15 @@
 #include <eosio/crypto.hpp>
 #include <eosio/dispatcher.hpp>
 
+#include "producer_pay.cpp"
+#include "delegate_bandwidth.cpp"
+#include "voting.cpp"
+#include "exchange_state.cpp"
+#include "rex.cpp"
+#include "rex.results.cpp"
+#include "native.cpp"
+#include "wps.cpp"
+
 namespace eosiosystem {
 
    using eosio::current_time_point;
@@ -21,7 +30,12 @@ namespace eosiosystem {
     _rexpool(get_self(), get_self().value),
     _rexfunds(get_self(), get_self().value),
     _rexbalance(get_self(), get_self().value),
-    _rexorders(get_self(), get_self().value)
+    _rexorders(get_self(), get_self().value),
+    _proposers(get_self(), get_self().value),
+    _proposals(get_self(), get_self().value),
+    _committees(get_self(), get_self().value),
+    _reviewers(get_self(), get_self().value),
+    _wps_env(get_self(), get_self().value)
    {
       //print( "construct system\n" );
       _gstate  = _global.exists() ? _global.get() : get_default_parameters();
