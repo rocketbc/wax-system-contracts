@@ -367,14 +367,13 @@ namespace eosiosystem {
         EOSLIB_SERIALIZE( reviewer, (account)(committee)(first_name)(last_name) )
     };
 
-    struct [[eosio::table, eosio::contract("eosio.system")]] wps_env {
-        wps_env() { }
+    struct [[eosio::table("wpsglobal"), eosio::contract("eosio.system")]] wpsenv {
         uint32_t total_voting_percent = 5;           // 5%
         uint32_t duration_of_voting = 30;            // voting duration (days)
         uint32_t max_duration_of_funding = 180;      // funding duration (days)
         uint32_t total_iteration_of_funding = 6;     //
         uint64_t primary_key() const { return 0; }
-        EOSLIB_SERIALIZE( wps_env, (total_voting_percent)(duration_of_voting)(max_duration_of_funding)(total_iteration_of_funding) )
+        EOSLIB_SERIALIZE( wpsenv, (total_voting_percent)(duration_of_voting)(max_duration_of_funding)(total_iteration_of_funding) )
     };
 
     /**
@@ -414,7 +413,7 @@ namespace eosiosystem {
     *
     * @details The WPS environment singleton holds configurable variables for the system
     */
-    typedef eosio::singleton< "wpsglobal"_n, wps_env > wps_env_singleton;
+    typedef eosio::singleton< "wpsglobal"_n, wpsenv > wps_env_singleton;
 
    /**
     * Voters table
@@ -712,7 +711,7 @@ namespace eosiosystem {
          proposal_table          _proposals;
          committee_table          _committees;
          reviewer_table          _reviewers;
-         wps_env_singleton       _wps_env;
+         //wps_env_singleton       _wps_env;
 
       public:
          static constexpr eosio::name active_permission{"active"_n};
