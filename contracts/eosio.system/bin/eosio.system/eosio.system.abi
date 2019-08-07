@@ -2953,7 +2953,7 @@
             "key_types": []
         },
         {
-            "name": "wpsenv",
+            "name": "wpsglobal",
             "type": "wpsenv",
             "index_type": "i64",
             "key_names": [],

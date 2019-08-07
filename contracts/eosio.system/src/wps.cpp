@@ -148,6 +148,7 @@ namespace eosiosystem {
         check(itr_proposal != _proposals.end(), "Proposal not found in proposal table");
 
         time_point_sec current_time = current_time_point();
+        wps_env_singleton _wps_env(get_self(), get_self().value);
         auto wps_env = _wps_env.get();
         auto& proposal = (*itr_proposal);
 
@@ -216,6 +217,7 @@ namespace eosiosystem {
         check(duration > 0, "duration should be longer than 0 days");
         check(members.size() > 0, "member should be more than 0");
 
+        wps_env_singleton _wps_env(get_self(), get_self().value);
         auto env = _wps_env.get();
 
         //verify that the inputs aren't too long
@@ -296,6 +298,7 @@ namespace eosiosystem {
         check(duration > 0, "duration should be longer than 0 days");
         check(members.size() > 0, "member should be more than 0");
 
+        wps_env_singleton _wps_env(get_self(), get_self().value);
         auto env = _wps_env.get();
 
         //verify that the inputs aren't too long
@@ -550,6 +553,8 @@ namespace eosiosystem {
         env.max_duration_of_funding = max_duration_of_funding;
         env.total_iteration_of_funding = total_iteration_of_funding;
 
+        wps_env_singleton _wps_env(get_self(), get_self().value);
+
         _wps_env.set( env, _self );
     }
 
@@ -641,6 +646,7 @@ namespace eosiosystem {
         check((*itr_proposal).status == PROPOSAL_STATUS::ON_VOTE, "Proposal::status is not PROPOSAL_STATUS::ON_VOTE");
 
         time_point_sec current_time = current_time_point();
+        wps_env_singleton _wps_env(get_self(), get_self().value);
         auto env = _wps_env.get();
         uint32_t duration_of_voting = env.duration_of_voting * seconds_per_day;
 
@@ -739,6 +745,7 @@ namespace eosiosystem {
                 //double init_total_votes = pitr->total_votes;
 
                 time_point_sec current_time = current_time_point();
+                wps_env_singleton _wps_env(get_self(), get_self().value);
                 auto wps_env = _wps_env.get();
                 uint32_t duration_of_voting = wps_env.duration_of_voting * seconds_per_day;
 
