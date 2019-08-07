@@ -543,7 +543,7 @@ namespace eosiosystem {
         check(max_duration_of_funding > 0, "max_duration_of_funding should be more than 0");
         check(total_iteration_of_funding > 0, "total_iteration_of_funding should be more than 0");
 
-        wps_env env = wps_env();
+        wpsenv env = wpsenv();
 
         env.total_voting_percent = total_voting_percent;
         env.duration_of_voting = duration_of_voting;
