@@ -9,6 +9,8 @@
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
 
+#include <cmath>
+
 namespace eosiosystem {
 
     using eosio::const_mem_fun;
@@ -657,6 +659,13 @@ namespace eosiosystem {
         }
     }
 
+    double stake2vote2( int64_t staked ) {
+        // From voting.cpp
+        /// TODO subtract 2080 brings the large numbers closer to this decade
+        double weight = int64_t( (current_time_point().sec_since_epoch() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7) )  / double( 13 );
+        return double(staked) * std::pow( 2, weight );
+    }
+
     void system_contract::voteproposal( const name& voter_name, const name& proxy, const std::vector<name>& proposals ) {
         require_auth( voter_name );
         vote_stake_updater( voter_name );
@@ -691,7 +700,7 @@ namespace eosiosystem {
             }
         }
 
-        auto new_vote_weight = stake2vote( voter->staked );
+        auto new_vote_weight = stake2vote2( voter->staked );
         if( voter->is_proxy ) {
             new_vote_weight += voter->proxied_vote_weight;
         }
@@ -738,6 +747,7 @@ namespace eosiosystem {
         for( const auto& pd : proposal_deltas ) {
             auto pitr = _proposals.find( pd.first.value );
             if( pitr != _proposals.end() ) {
+                checkexpire(pd.first);
                 /*if( voting && (*pitr).status != PROPOSAL_STATUS::ON_VOTE && pd.second.second ) {
                     check( false, ( pitr->owner.to_string() + "'s proposal is not currently on vote" ).data() );
                 }*/
