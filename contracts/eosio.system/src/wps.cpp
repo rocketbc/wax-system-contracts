@@ -657,6 +657,13 @@ namespace eosiosystem {
         }
     }
 
+    double stake2vote( int64_t staked ) {
+        // From voting.cpp
+        /// TODO subtract 2080 brings the large numbers closer to this decade
+        double weight = int64_t( (current_time_point().sec_since_epoch() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7) )  / double( 13 );
+        return double(staked) * std::pow( 2, weight );
+    }
+
     void system_contract::voteproposal( const name& voter_name, const name& proxy, const std::vector<name>& proposals ) {
         require_auth( voter_name );
         vote_stake_updater( voter_name );
