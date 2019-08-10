@@ -738,7 +738,7 @@ namespace eosiosystem {
         for( const auto& pd : proposal_deltas ) {
             auto pitr = _proposals.find( pd.first.value );
             if( pitr != _proposals.end() ) {
-                checkexpire(pd.first.value);
+                checkexpire(pd.first);
                 /*if( voting && (*pitr).status != PROPOSAL_STATUS::ON_VOTE && pd.second.second ) {
                     check( false, ( pitr->owner.to_string() + "'s proposal is not currently on vote" ).data() );
                 }*/
