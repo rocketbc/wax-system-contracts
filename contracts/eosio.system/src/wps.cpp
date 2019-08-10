@@ -9,6 +9,8 @@
 #include <eosio.system/eosio.system.hpp>
 #include <eosio.token/eosio.token.hpp>
 
+#include <cmath>
+
 namespace eosiosystem {
 
     using eosio::const_mem_fun;
@@ -657,7 +659,7 @@ namespace eosiosystem {
         }
     }
 
-    double stake2vote( int64_t staked ) {
+    double stake2vote2( int64_t staked ) {
         // From voting.cpp
         /// TODO subtract 2080 brings the large numbers closer to this decade
         double weight = int64_t( (current_time_point().sec_since_epoch() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7) )  / double( 13 );
@@ -698,7 +700,7 @@ namespace eosiosystem {
             }
         }
 
-        auto new_vote_weight = stake2vote( voter->staked );
+        auto new_vote_weight = stake2vote2( voter->staked );
         if( voter->is_proxy ) {
             new_vote_weight += voter->proxied_vote_weight;
         }
