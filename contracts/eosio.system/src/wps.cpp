@@ -136,17 +136,16 @@ namespace eosiosystem {
         _proposers.erase(itr);
     }
 
-    void system_contract::claimfunds(name account, name proposer){
+    void system_contract::claimfunds(name account){
         // needs authority of the proposer account
         require_auth(account);
-        check(is_account(proposer), "Proposal creator does not exist");
 
         // verify that the account already exists in the proposer table
         auto itr = _proposers.find(account.value);
         check(itr != _proposers.end(), "Account not found in proposer table");
 
         //auto idx_index = _proposals.get_index<"idx"_n>();
-        auto itr_proposal = _proposals.find(proposer.value);
+        auto itr_proposal = _proposals.find(account.value);
         check(itr_proposal != _proposals.end(), "Proposal not found in proposal table");
 
         time_point_sec current_time = current_time_point();
@@ -162,7 +161,7 @@ namespace eosiosystem {
         time_point_sec start_funding_round = proposal.fund_start_time +
                 (uint32_t) (proposal.iteration_of_funding * seconds_per_claim_interval);
 
-        check(current_time > start_funding_round, "It has not been 30 days since last claim");
+        check(current_time > start_funding_round, "You have already claimed for the last interval. Please wait for your funding to re-fill.");
 
         asset transfer_amount = proposal.funding_goal / wps_env.total_iteration_of_funding;
 
@@ -234,7 +233,7 @@ namespace eosiosystem {
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
 
-        check(funding_goal.symbol == eosio::symbol("EOS", 4), "symbol precision mismatch");
+        check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch");
 
         auto itr = _proposers.find(proposer.value);
         // verify that the account is a registered proposer
@@ -315,7 +314,7 @@ namespace eosiosystem {
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
 
-        check(funding_goal.symbol == asset().symbol, "symbol precision mismatch" );
+        check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch" );
 
         auto itr = _proposers.find(proposer.value);
         // verify that the account is a registered proposer
@@ -543,7 +542,7 @@ namespace eosiosystem {
         //registration of committee requires contract account permissions
         require_auth(get_self());
 
-        check(total_voting_percent >= 5, "total_voting_percent should be more than equal 5 long");
+        check(total_voting_percent > 0, "total_voting_percent should be more 0");
         check(duration_of_voting > 0, "duration_of_voting should be more than 0");
         check(max_duration_of_funding > 0, "max_duration_of_funding should be more than 0");
         check(total_iteration_of_funding > 0, "total_iteration_of_funding should be more than 0");
@@ -640,25 +639,6 @@ namespace eosiosystem {
         });
     }
 
-    void system_contract::checkexpire(name proposer){
-        check(is_account(proposer), "Proposal creator does not exist");
-
-        auto itr_proposal = _proposals.find(proposer.value);
-        check(itr_proposal != _proposals.end(), "Proposal not found in proposal table");
-        check((*itr_proposal).status == PROPOSAL_STATUS::ON_VOTE, "Proposal::status is not PROPOSAL_STATUS::ON_VOTE");
-
-        time_point_sec current_time = current_time_point();
-        wps_env_singleton _wps_env(get_self(), get_self().value);
-        auto env = _wps_env.get();
-        uint32_t duration_of_voting = env.duration_of_voting * seconds_per_day;
-
-        if(time_point_sec(time_point(current_time - (*itr_proposal).vote_start_time)) > time_point_sec(duration_of_voting)){
-            _proposals.modify(itr_proposal, same_payer, [&](auto& _proposal){
-                _proposal.status = PROPOSAL_STATUS::REJECTED;
-            });
-        }
-    }
-
     double stake2vote2( int64_t staked ) {
         // From voting.cpp
         /// TODO subtract 2080 brings the large numbers closer to this decade
@@ -666,27 +646,21 @@ namespace eosiosystem {
         return double(staked) * std::pow( 2, weight );
     }
 
-    void system_contract::voteproposal( const name& voter_name, const name& proxy, const std::vector<name>& proposals ) {
+    void system_contract::voteproposal( const name& voter_name, const std::vector<name>& proposals ) {
         require_auth( voter_name );
         vote_stake_updater( voter_name );
-        update_wps_votes( voter_name, proxy, proposals, true );
+        update_wps_votes( voter_name, proposals, true );
     }
 
-    void system_contract::update_wps_votes( const name& voter_name, const name& proxy, const std::vector<name>& proposals, bool voting){
+    void system_contract::update_wps_votes( const name& voter_name, const std::vector<name>& proposals, bool voting){
         //validate input
-        if ( proxy ) {
-            check( proposals.size() == 0, "cannot vote for proposals and proxy at same time" );
-            check( voter_name != proxy, "cannot proxy to self" );
-        } else {
-            check( proposals.size() <= 5, "attempt to vote for too many proposals" );
-            for( size_t i = 1; i < proposals.size(); ++i ) {
-                check( proposals[i-1] != proposals[i], "proposal votes must be unique" );
-            }
+        check( proposals.size() <= 1, "attempt to vote for too many proposals" );
+        for( size_t i = 1; i < proposals.size(); ++i ) {
+            check( proposals[i-1] != proposals[i], "proposal votes must be unique" );
         }
 
         auto voter = _voters.find( voter_name.value );
         check( voter != _voters.end(), "user must stake before they can vote" ); /// staking creates voter object
-        check( !proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy" );
 
         /**
          * The first time someone votes we calculate and set last_vote_weight, since they cannot unstake until
@@ -702,44 +676,23 @@ namespace eosiosystem {
 
         auto new_vote_weight = stake2vote2( voter->staked );
         if( voter->is_proxy ) {
-            new_vote_weight += voter->proxied_vote_weight;
+            check(false, "Proxies can't vote for worker proposals");
         }
 
         std::map<name, std::pair<double, bool /*new*/> > proposal_deltas;
         if ( voter->last_vote_weight > 0 ) {
-            if( voter->proxy ) {
-                auto old_proxy = _voters.find( voter->proxy.value );
-                check( old_proxy != _voters.end(), "old proxy not found" ); //data corruption
-                _voters.modify( old_proxy, same_payer, [&]( auto& vp ) {
-                    vp.proxied_vote_weight -= voter->last_vote_weight;
-                });
-                propagate_weight_change( *old_proxy );
-            } else {
-                for( const auto& p : voter->proposals ) {
+            for( const auto& p : voter->proposals ) {
                     auto& d = proposal_deltas[p];
                     d.first -= voter->last_vote_weight;
                     d.second = false;
-                }
             }
         }
 
-        if( proxy ) {
-            auto new_proxy = _voters.find( proxy.value );
-            check( new_proxy != _voters.end(), "invalid proxy specified" ); //if ( !voting ) { data corruption } else { wrong vote }
-            check( !voting || new_proxy->is_proxy, "proxy not found" );
-            if ( new_vote_weight >= 0 ) {
-                _voters.modify( new_proxy, same_payer, [&]( auto& vp ) {
-                    vp.proxied_vote_weight += new_vote_weight;
-                });
-                propagate_weight_change( *new_proxy );
-            }
-        } else {
-            if( new_vote_weight >= 0 ) {
-                for( const auto& p : proposals ) {
-                    auto& d = proposal_deltas[p];
-                    d.first += new_vote_weight;
-                    d.second = true;
-                }
+        if( new_vote_weight >= 0 ) {
+            for( const auto& p : proposals ) {
+                auto& d = proposal_deltas[p];
+                d.first += new_vote_weight;
+                d.second = true;
             }
         }
 
@@ -747,12 +700,8 @@ namespace eosiosystem {
         for( const auto& pd : proposal_deltas ) {
             auto pitr = _proposals.find( pd.first.value );
             if( pitr != _proposals.end() ) {
-                checkexpire(pd.first);
-                /*if( voting && (*pitr).status != PROPOSAL_STATUS::ON_VOTE && pd.second.second ) {
-                    check( false, ( pitr->owner.to_string() + "'s proposal is not currently on vote" ).data() );
-                }*/
-                check( (*pitr).status != PROPOSAL_STATUS::ON_VOTE, ( pitr->proposer.to_string() + "'s proposal is not currently on vote" ).data() );
-                //double init_total_votes = pitr->total_votes;
+
+                check( (*pitr).status == PROPOSAL_STATUS::ON_VOTE, "The proposal is not currently on vote" );
 
                 time_point_sec current_time = current_time_point();
                 wps_env_singleton _wps_env(get_self(), get_self().value);
@@ -774,7 +723,8 @@ namespace eosiosystem {
                         //check( p.total_votes >= 0, "something bad happened" );
                     });
 
-                    if((*pitr).total_votes > _gstate.total_activated_stake / (100/wps_env.total_voting_percent)){
+                    auto total_activated_vote = stake2vote2(_gstate.total_activated_stake);
+                    if((*pitr).total_votes > (double) (total_activated_vote / ((double) (100/wps_env.total_voting_percent)))){
                         _proposals.modify( pitr, same_payer, [&]( auto& p ) {
                             p.status = PROPOSAL_STATUS::FINISHED_VOTING;
                         });
@@ -790,9 +740,7 @@ namespace eosiosystem {
         _voters.modify( voter, same_payer, [&]( auto& av ) {
             av.last_vote_weight = new_vote_weight;
             av.proposals = proposals;
-            av.proxy     = proxy;
         });
-        //update_voter_votepay_share(voter);
     }
 
 } /// namespace eosiosystem

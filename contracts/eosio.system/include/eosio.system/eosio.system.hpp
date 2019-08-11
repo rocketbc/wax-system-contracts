@@ -1467,7 +1467,7 @@ namespace eosiosystem {
        void rmvproposer(name account);
 
        [[eosio::action]]
-       void claimfunds(name account, name proposal);
+       void claimfunds(name account);
 
        [[eosio::action]]
        void regproposal(
@@ -1542,7 +1542,7 @@ namespace eosiosystem {
        void rejectfund(name committeeman, name proposer, const string& reason);
 
        [[eosio::action]]
-       void voteproposal(const name& voter_name, const name& proxy, const std::vector<name>& proposals);
+       void voteproposal(const name& voter_name, const std::vector<name>& proposals);
 
          using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
          using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
@@ -1637,8 +1637,7 @@ namespace eosiosystem {
          void update_ram_supply();
 
          //defined in wps.cpp
-         void checkexpire(name proposer);
-         void update_wps_votes( const name& voter, const name& proxy, const std::vector<name>& proposals, bool voting);
+         void update_wps_votes( const name& voter, const std::vector<name>& proposals, bool voting);
 
          // defined in rex.cpp
          void runrex( uint16_t max );
