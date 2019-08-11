@@ -1637,7 +1637,7 @@ namespace eosiosystem {
          void update_ram_supply();
 
          //defined in wps.cpp
-         void update_wps_votes( const name& voter, const name& proxy, const std::vector<name>& proposals, bool voting);
+         void update_wps_votes( const name& voter, const std::vector<name>& proposals, bool voting);
 
          // defined in rex.cpp
          void runrex( uint16_t max );

@@ -542,7 +542,7 @@ namespace eosiosystem {
         //registration of committee requires contract account permissions
         require_auth(get_self());
 
-        check(total_voting_percent > 0, "total_voting_percent should be more 0");-
+        check(total_voting_percent > 0, "total_voting_percent should be more 0");
         check(duration_of_voting > 0, "duration_of_voting should be more than 0");
         check(max_duration_of_funding > 0, "max_duration_of_funding should be more than 0");
         check(total_iteration_of_funding > 0, "total_iteration_of_funding should be more than 0");
@@ -676,7 +676,7 @@ namespace eosiosystem {
 
         auto new_vote_weight = stake2vote2( voter->staked );
         if( voter->is_proxy ) {
-            check(false, "Proxies can't vote for worker proposals")
+            check(false, "Proxies can't vote for worker proposals");
         }
 
         std::map<name, std::pair<double, bool /*new*/> > proposal_deltas;
