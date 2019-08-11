@@ -751,7 +751,7 @@ namespace eosiosystem {
                 /*if( voting && (*pitr).status != PROPOSAL_STATUS::ON_VOTE && pd.second.second ) {
                     check( false, ( pitr->owner.to_string() + "'s proposal is not currently on vote" ).data() );
                 }*/
-                check( (*pitr).status != PROPOSAL_STATUS::ON_VOTE, ( pitr->proposer.to_string() + "'s proposal is not currently on vote" ).data() );
+                check( (*pitr).status == PROPOSAL_STATUS::ON_VOTE, ( pitr->proposer.to_string() + "'s proposal is not currently on vote" ).data() );
                 //double init_total_votes = pitr->total_votes;
 
                 time_point_sec current_time = current_time_point();
