@@ -678,7 +678,7 @@ namespace eosiosystem {
             check( proposals.size() == 0, "cannot vote for proposals and proxy at same time" );
             check( voter_name != proxy, "cannot proxy to self" );
         } else {
-            check( proposals.size() <= 5, "attempt to vote for too many proposals" );
+            check( proposals.size() <= 1, "attempt to vote for too many proposals" );
             for( size_t i = 1; i < proposals.size(); ++i ) {
                 check( proposals[i-1] != proposals[i], "proposal votes must be unique" );
             }
@@ -751,7 +751,7 @@ namespace eosiosystem {
                 /*if( voting && (*pitr).status != PROPOSAL_STATUS::ON_VOTE && pd.second.second ) {
                     check( false, ( pitr->owner.to_string() + "'s proposal is not currently on vote" ).data() );
                 }*/
-                check( (*pitr).status == PROPOSAL_STATUS::ON_VOTE, ( pitr->proposer.to_string() + "'s proposal is not currently on vote" ).data() );
+                check( (*pitr).status == PROPOSAL_STATUS::ON_VOTE, "The proposal is not currently on vote" );
                 //double init_total_votes = pitr->total_votes;
 
                 time_point_sec current_time = current_time_point();
