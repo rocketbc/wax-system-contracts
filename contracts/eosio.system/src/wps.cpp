@@ -234,7 +234,7 @@ namespace eosiosystem {
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
 
-        check(funding_goal.symbol == eosio::symbol("EOS", 4), "symbol precision mismatch");
+        check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch");
 
         auto itr = _proposers.find(proposer.value);
         // verify that the account is a registered proposer
@@ -315,7 +315,7 @@ namespace eosiosystem {
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
 
-        check(funding_goal.symbol == asset().symbol, "symbol precision mismatch" );
+        check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch" );
 
         auto itr = _proposers.find(proposer.value);
         // verify that the account is a registered proposer
