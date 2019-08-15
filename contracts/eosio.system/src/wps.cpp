@@ -719,8 +719,6 @@ namespace eosiosystem {
                         if ( p.total_votes < 0 ) { // floating point arithmetics can give small negative numbers
                             p.total_votes = 0;
                         }
-                        //_gstate.total_producer_vote_weight += pd.second.first;
-                        //check( p.total_votes >= 0, "something bad happened" );
                     });
 
                     auto total_activated_vote = stake2vote2(_gstate.total_activated_stake);
