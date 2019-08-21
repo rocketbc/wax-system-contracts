@@ -154,16 +154,16 @@ namespace eosiosystem {
         auto& proposal = (*itr_proposal);
 
         check(proposal.status == PROPOSAL_STATUS::APPROVED, "Proposal::status is not PROPOSAL_STATUS::APPROVED");
-        check(proposal.iteration_of_funding < wps_env.total_iteration_of_funding, "all funds for this proposal have already been claimed");
+        check(proposal.iteration_of_funding < total_iterations, "all funds for this proposal have already been claimed");
 
         uint32_t funding_duration_seconds = proposal.duration * seconds_per_day;
-        uint32_t seconds_per_claim_interval = funding_duration_seconds / wps_env.total_iteration_of_funding;
+        uint32_t seconds_per_claim_interval = funding_duration_seconds / proposal.total_iterations;
         time_point_sec start_funding_round = proposal.fund_start_time +
                 (uint32_t) (proposal.iteration_of_funding * seconds_per_claim_interval);
 
         check(current_time > start_funding_round, "You have already claimed for the last interval. Please wait for your funding to re-fill.");
 
-        asset transfer_amount = proposal.funding_goal / wps_env.total_iteration_of_funding;
+        asset transfer_amount = proposal.funding_goal / proposal.total_iterations;
 
         //inline action transfer, send funds to proposer
         eosio::action(
@@ -180,7 +180,7 @@ namespace eosiosystem {
             _proposal.iteration_of_funding += 1;
         });
 
-        if(proposal.iteration_of_funding >= wps_env.total_iteration_of_funding){
+        if(proposal.iteration_of_funding >= proposal.total_iterations){
             _proposals.modify(itr_proposal, same_payer, [&](auto& _proposal){
                 _proposal.status = PROPOSAL_STATUS::COMPLETED;
             });
@@ -199,7 +199,8 @@ namespace eosiosystem {
             const string& roadmap,
             uint64_t duration,
             const vector<string>& members,
-            const asset& funding_goal
+            const asset& funding_goal,
+            uint32_t total_iterations
     ){
         // authority of the user's account is required
         require_auth(proposer);
@@ -215,8 +216,9 @@ namespace eosiosystem {
         check(project_img_url.size() > 0, "URL should be more than 0 characters long");
         check(description.size() > 0, "description should be more than 0 characters long");
         check(roadmap.size() > 0, "roadmap should be more than 0 characters long");
-        check(duration > 0, "duration should be longer than 0 days");
+        check(duration >= 30, "duration should be at least 30 days");
         check(members.size() > 0, "member should be more than 0");
+        check(total_iterations >= 3, "total number of iterations must be at least 3");
 
         wps_env_singleton _wps_env(get_self(), get_self().value);
         auto env = _wps_env.get();
@@ -228,10 +230,11 @@ namespace eosiosystem {
         check(project_img_url.size() < 128, "URL should be shorter than 128 characters.");
         check(description.size() < 5000, "description should be shorter than 1024 characters.");
         check(roadmap.size() < 2000, "financial_roadmap should be shorter than 256 characters.");
-        check(duration <= env.max_duration_of_funding, "duration can be at most 180 days");
+        check(duration <= env.max_duration_of_funding, "this proposal is over the maximum duration");
         check(members.size() < 50, "members should be shorter than 50 characters.");
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
+        check(total_iterations < 100, "total iterations must be less than 100");
 
         check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch");
 
@@ -268,6 +271,7 @@ namespace eosiosystem {
             proposal.vote_start_time = time_point_sec();
             proposal.fund_start_time = time_point_sec();
             proposal.iteration_of_funding = 0;
+            proposal.total_iterations = total_iterations;
         });
     }
 
@@ -282,7 +286,8 @@ namespace eosiosystem {
             const string& roadmap,
             uint64_t duration,
             const vector<string>& members,
-            const asset& funding_goal
+            const asset& funding_goal,
+            uint32_t total_iterations
     ){
         // authority of the user's account is required
         require_auth(proposer);
@@ -298,6 +303,7 @@ namespace eosiosystem {
         check(roadmap.size() > 0, "roadmap should be more than 0 characters long");
         check(duration > 0, "duration should be longer than 0 days");
         check(members.size() > 0, "member should be more than 0");
+        check(total_iterations >= 3, "total number of iterations must be at least 3");
 
         wps_env_singleton _wps_env(get_self(), get_self().value);
         auto env = _wps_env.get();
@@ -313,6 +319,7 @@ namespace eosiosystem {
         check(members.size() < 50, "members should be shorter than 50 characters.");
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
+        check(total_iterations < 100, "total iterations must be less than 100");
 
         check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch" );
 
@@ -344,6 +351,7 @@ namespace eosiosystem {
             proposal.duration = duration;
             proposal.members = members;
             proposal.funding_goal = funding_goal;
+            proposa.total_iterations = total_iterations;
         });
     }
 
@@ -701,7 +709,7 @@ namespace eosiosystem {
             auto pitr = _proposals.find( pd.first.value );
             if( pitr != _proposals.end() ) {
 
-                check( (*pitr).status == PROPOSAL_STATUS::ON_VOTE, "The proposal is not currently on vote" );
+                check( (*pitr).status != PROPOSAL_STATUS::PENDING, "The proposal is not currently on vote" );
 
                 time_point_sec current_time = current_time_point();
                 wps_env_singleton _wps_env(get_self(), get_self().value);
@@ -723,9 +731,11 @@ namespace eosiosystem {
 
                     auto total_activated_vote = stake2vote2(_gstate.total_activated_stake);
                     if((*pitr).total_votes > (double) (total_activated_vote / ((double) (100/wps_env.total_voting_percent)))){
-                        _proposals.modify( pitr, same_payer, [&]( auto& p ) {
-                            p.status = PROPOSAL_STATUS::FINISHED_VOTING;
-                        });
+                        if((*pitr).status == PROPOSAL_STATUS::ON_VOTE){
+                            _proposals.modify( pitr, same_payer, [&]( auto& p ) {
+                                p.status = PROPOSAL_STATUS::FINISHED_VOTING;
+                            });
+                        }
                     }
                 }
             } else {
