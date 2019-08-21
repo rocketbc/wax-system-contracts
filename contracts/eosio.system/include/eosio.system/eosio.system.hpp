@@ -1046,7 +1046,8 @@ namespace eosiosystem {
                    const string& roadmap,
                    uint64_t duration,
                    const vector<string>& members,
-                   const asset& funding_goal
+                   const asset& funding_goal,
+                   uint32_t total_iterations
        );
 
        [[eosio::action]]

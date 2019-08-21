@@ -154,7 +154,7 @@ namespace eosiosystem {
         auto& proposal = (*itr_proposal);
 
         check(proposal.status == PROPOSAL_STATUS::APPROVED, "Proposal::status is not PROPOSAL_STATUS::APPROVED");
-        check(proposal.iteration_of_funding < total_iterations, "all funds for this proposal have already been claimed");
+        check(proposal.iteration_of_funding < proposal.total_iterations, "all funds for this proposal have already been claimed");
 
         uint32_t funding_duration_seconds = proposal.duration * seconds_per_day;
         uint32_t seconds_per_claim_interval = funding_duration_seconds / proposal.total_iterations;
@@ -351,7 +351,7 @@ namespace eosiosystem {
             proposal.duration = duration;
             proposal.members = members;
             proposal.funding_goal = funding_goal;
-            proposa.total_iterations = total_iterations;
+            proposal.total_iterations = total_iterations;
         });
     }
 
@@ -656,7 +656,7 @@ namespace eosiosystem {
 
     void system_contract::voteproposal( const name& voter_name, const std::vector<name>& proposals ) {
         require_auth( voter_name );
-        vote_stake_updater( voter_name );
+        // vote_stake_updater( voter_name );
         update_wps_votes( voter_name, proposals, true );
     }
 
