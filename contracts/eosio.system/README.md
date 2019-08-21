@@ -6,6 +6,7 @@ This contract provides multiple functionalities:
 - Producers register in order to be voted for, and can claim per-block and per-vote rewards.
 - Users can buy and sell RAM at a market-determined price.
 - Users can bid on premium names.
+- The WAX Worker Proposal System to vote for and fund projects beneficial to the overall ecosystem
 - A resource exchange system (REX) allows token holders to lend their tokens, and users to rent CPU and Network resources in return for a market-determined fee. 
 
 Actions:

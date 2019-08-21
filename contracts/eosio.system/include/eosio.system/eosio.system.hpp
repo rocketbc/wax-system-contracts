@@ -334,12 +334,13 @@ namespace eosiosystem {
         uint8_t status;               // status
         time_point_sec vote_start_time;     // time when voting starts (seconds)
         time_point_sec fund_start_time;     // time when funding starts (seconds)
-        uint32_t iteration_of_funding; // number of iterations
+        uint32_t iteration_of_funding; // current number of iterations
+        uint32_t total_iterations; // total number of iterations
         uint64_t primary_key() const { return proposer.value; }
         uint64_t by_id() const { return id; }
         double   by_votes()const    { return total_votes;  }
         EOSLIB_SERIALIZE( proposal, (proposer)(id)(committee)(category)(subcategory)(title)(summary)(project_img_url)(description)(roadmap)(duration)(members)(funding_goal)
-                (total_votes)(status)(vote_start_time)(fund_start_time)(iteration_of_funding) )
+                (total_votes)(status)(vote_start_time)(fund_start_time)(iteration_of_funding)(total_iterations) )
     };
 
     struct [[eosio::table, eosio::contract("eosio.system")]] committee {
@@ -1029,7 +1030,8 @@ namespace eosiosystem {
                    const string& roadmap,
                    uint64_t duration,
                    const vector<string>& members,
-                   const asset& funding_goal
+                   const asset& funding_goal,
+                   uint32_t total_iterations
        );
 
        [[eosio::action]]
