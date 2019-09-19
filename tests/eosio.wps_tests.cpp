@@ -313,6 +313,12 @@ BOOST_FIXTURE_TEST_CASE(wpsenv_set, eosio_wps_tester) try {
 } FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(committee_reg_edit_rmv, eosio_wps_tester) try {
+
+    create_account_with_resources(N(alice1111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+    setwpsenv(config::system_account_name, 5, 30, 500, 6);
+
     BOOST_REQUIRE_EQUAL(error("missing authority of eosio"), regcommittee(N(alice1111111), N(alice1111111), "categoryX", true));
     BOOST_REQUIRE_EQUAL(success(), regcommittee(config::system_account_name, N(alice1111111), "categoryX", true));
     BOOST_REQUIRE_EQUAL(wasm_assert_msg("This account has already been registered as a committee"), regcommittee(config::system_account_name, N(alice1111111), "categoryX", true));
@@ -333,13 +339,17 @@ BOOST_FIXTURE_TEST_CASE(committee_reg_edit_rmv, eosio_wps_tester) try {
     BOOST_REQUIRE_EQUAL(error("missing authority of eosio"), rmvcommittee(N(alice1111111), N(alice1111111)));
     BOOST_REQUIRE_EQUAL(success(), rmvcommittee(config::system_account_name, N(alice1111111)));
 
-    produce_blocks(1);
-
-    regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
-
 } FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(reviewer_reg_edit_rmv, eosio_wps_tester) try {
+
+    create_account_with_resources(N(alice1111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(bob111111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+    setwpsenv(config::system_account_name, 5, 30, 500, 6);
+    regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
 
     BOOST_REQUIRE_EQUAL(error("missing authority of alice1111111"),
         regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob"));
@@ -372,14 +382,17 @@ BOOST_FIXTURE_TEST_CASE(reviewer_reg_edit_rmv, eosio_wps_tester) try {
 
     BOOST_REQUIRE_EQUAL(success(), rmvreviewer(N(alice1111111), N(alice1111111), N(bob111111111)));
 
-    produce_blocks(1);
-
-    regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob")
-
 } FC_LOG_AND_RETHROW()
 
 
 BOOST_FIXTURE_TEST_CASE(proposer_reg_edit_rmv, eosio_wps_tester) try {
+
+create_account_with_resources(N(user11111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+create_account_with_resources(N(user22222222), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+setwpsenv(config::system_account_name, 5, 30, 500, 6);
 
 BOOST_REQUIRE_EQUAL(error("missing authority of user11111111"),
         regproposer(N(user22222222), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
@@ -407,16 +420,26 @@ BOOST_REQUIRE_EQUAL(proposer["first_name"], "proposer");
 BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in proposer table"),
     rmvproposer(N(user22222222), N(user22222222)));
 
-BOOST_REQUIRE_EQUAL(success(), rmvproposer(N(user11111111), N(user11111111));
-
-produce_blocks(1);
-
-regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+BOOST_REQUIRE_EQUAL(success(), rmvproposer(N(user11111111), N(user11111111)));
 
 } FC_LOG_AND_RETHROW()
 
 
 BOOST_FIXTURE_TEST_CASE(proposal_reg_edit_rmv, eosio_wps_tester) try {
+
+    create_account_with_resources(N(alice1111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(bob111111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(user11111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(user22222222), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+setwpsenv(config::system_account_name, 5, 30, 500, 6);
+regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
+regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
+regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
 
 BOOST_REQUIRE_EQUAL(error("missing authority of user11111111"),
         regproposal(N(user22222222), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
@@ -445,34 +468,45 @@ proposal = get_proposal(N(user11111111));
 
 BOOST_REQUIRE_EQUAL(proposal["title"], "First proposal");
 
-BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in proposal table"), rmvproposal(N(user22222222), N(user22222222));
+BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in proposal table"), rmvproposal(N(user22222222), N(user22222222)));
 
-BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(user11111111), N(user11111111));
-
-produce_blocks(1);
-
-regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(user11111111), N(user11111111)));
 
 } FC_LOG_AND_RETHROW()
 
 
 BOOST_FIXTURE_TEST_CASE(reviewer_accept_reject, eosio_wps_tester) try {
 
+create_account_with_resources(N(alice1111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+create_account_with_resources(N(bob111111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+create_account_with_resources(N(user11111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+create_account_with_resources(N(user22222222), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+setwpsenv(config::system_account_name, 5, 30, 500, 6);
+regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
+regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
+regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+
 BOOST_REQUIRE_EQUAL(error("missing authority of bob111111111"),
-        acceptprop(N(user11111111), N(bob111111111), N(user11111111));
+        acceptprop(N(user11111111), N(bob111111111), N(user11111111)));
 
 BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in reviewers table"),
-        acceptprop(N(user11111111), N(user11111111), N(user11111111));
+        acceptprop(N(user11111111), N(user11111111), N(user11111111)));
 
 BOOST_REQUIRE_EQUAL(error("missing authority of bob111111111"),
-        rejectprop(N(user11111111), N(bob111111111), N(user11111111), "reason");
+        rejectprop(N(user11111111), N(bob111111111), N(user11111111), "reason"));
 
 BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in reviewers table"),
-        rejectprop(N(user11111111), N(user11111111), N(user11111111), "reason");
+        rejectprop(N(user11111111), N(user11111111), N(user11111111), "reason"));
 
 BOOST_REQUIRE_EQUAL(success(),
-        rejectprop(N(bob111111111), N(bob111111111), N(user11111111), "reason");
+        rejectprop(N(bob111111111), N(bob111111111), N(user11111111), "reason"));
 
 produce_blocks(1);
 
@@ -480,7 +514,7 @@ auto proposal = get_proposal(N(user11111111));
 
 BOOST_REQUIRE_EQUAL(proposal["status"], 2);
 
-BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(user11111111), N(user11111111));
+BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(user11111111), N(user11111111)));
 
 produce_blocks(1);
 
@@ -489,7 +523,7 @@ regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summ
 
 produce_blocks(1);
 
-BOOST_REQUIRE_EQUAL(success(), acceptprop(N(user11111111), N(user11111111));
+BOOST_REQUIRE_EQUAL(success(), acceptprop(N(user11111111), N(user11111111)));
 
 produce_blocks(1);
 
@@ -502,7 +536,25 @@ BOOST_REQUIRE_EQUAL(proposal["status"], 3);
 
 BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
 
+    create_account_with_resources(N(alice1111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(bob111111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(user11111111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(user22222222), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
     cross_15_percent_threshold();
+
+    setwpsenv(config::system_account_name, 5, 30, 500, 6);
+    regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
+    regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
+    regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+    regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
+    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+    acceptprop(N(user11111111), N(user11111111));
+
 
     create_account_with_resources(N(smallvoter11), config::system_account_name, core_sym::from_string("100.0000"), false,
 core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
@@ -531,13 +583,13 @@ core_sym::from_string("50000000.0000"), core_sym::from_string("50000000.0000"));
     BOOST_REQUIRE_EQUAL(proposal["status"], 4);
 
     BOOST_REQUIRE_EQUAL(error("missing authority of bob111111111"),
-        approve(N(user11111111), N(bob111111111), N(user11111111));
+        approve(N(user11111111), N(bob111111111), N(user11111111)));
 
     BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in reviewers table"),
-        approve(N(user11111111), N(user11111111), N(user11111111));
+        approve(N(user11111111), N(user11111111), N(user11111111)));
 
     BOOST_REQUIRE_EQUAL(success(),
-        approve(N(bob111111111), N(bob111111111), N(user11111111), "reason");
+        approve(N(bob111111111), N(bob111111111), N(user11111111), "reason"));
 
     produce_blocks(1);
 
