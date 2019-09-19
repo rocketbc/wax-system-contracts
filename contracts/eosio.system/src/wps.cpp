@@ -154,14 +154,14 @@ namespace eosiosystem {
         auto& proposal = (*itr_proposal);
 
         check(proposal.status == PROPOSAL_STATUS::APPROVED, "Proposal::status is not PROPOSAL_STATUS::APPROVED");
-        check(proposal.iteration_of_funding < proposal.total_iterations, "all funds for this proposal have already been claimed");
+        check(proposal.iteration_of_funding <= proposal.total_iterations, "all funds for this proposal have already been claimed");
 
         uint32_t funding_duration_seconds = proposal.duration * seconds_per_day;
         uint32_t seconds_per_claim_interval = funding_duration_seconds / proposal.total_iterations;
         time_point_sec start_funding_round = proposal.fund_start_time +
                 (uint32_t) (proposal.iteration_of_funding * seconds_per_claim_interval);
 
-        check(current_time > start_funding_round, "You have already claimed for the last interval. Please wait for your funding to re-fill.");
+        check(current_time > start_funding_round, "Please wait until the end of this interval to claim funding");
 
         asset transfer_amount = proposal.funding_goal / proposal.total_iterations;
 
@@ -176,11 +176,13 @@ namespace eosiosystem {
             _proposer.last_claim_time = current_time;
         });
 
+        uint32_t past_iteration = proposal.iteration_of_funding;
+
         _proposals.modify(itr_proposal, same_payer, [&](auto& _proposal){
             _proposal.iteration_of_funding += 1;
         });
 
-        if(proposal.iteration_of_funding >= proposal.total_iterations){
+        if(past_iteration >= proposal.total_iterations){
             _proposals.modify(itr_proposal, same_payer, [&](auto& _proposal){
                 _proposal.status = PROPOSAL_STATUS::COMPLETED;
             });
@@ -270,7 +272,7 @@ namespace eosiosystem {
             proposal.total_votes = 0;
             proposal.vote_start_time = time_point_sec();
             proposal.fund_start_time = time_point_sec();
-            proposal.iteration_of_funding = 0;
+            proposal.iteration_of_funding = 1;
             proposal.total_iterations = total_iterations;
         });
     }
@@ -485,7 +487,8 @@ namespace eosiosystem {
         auto itr_proposal = _proposals.find(proposer.value);
         check(itr_proposal != _proposals.end(), "Proposal not found in proposal table");
         check((*itr_proposal).committee == (*itr).committee, "Reviewer is not part of this proposal's responsible committee");
-        check(((*itr_proposal).status == PROPOSAL_STATUS::PENDING) || ((*itr_proposal).status == PROPOSAL_STATUS::ON_VOTE), "invalid proposal status");
+        check(((*itr_proposal).status == PROPOSAL_STATUS::PENDING) || ((*itr_proposal).status == PROPOSAL_STATUS::ON_VOTE)
+                || (*itr_proposal).status == PROPOSAL_STATUS::FINISHED_VOTING), "invalid proposal status");
 
         _proposals.modify(itr_proposal, (*itr_proposal).proposer, [&](auto& proposal){
             proposal.status = PROPOSAL_STATUS::REJECTED;

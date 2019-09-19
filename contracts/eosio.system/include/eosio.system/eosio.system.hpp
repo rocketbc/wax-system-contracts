@@ -363,7 +363,7 @@ namespace eosiosystem {
     struct [[eosio::table("wpsglobal"), eosio::contract("eosio.system")]] wpsenv {
         uint32_t total_voting_percent = 5;           // 5%
         uint32_t duration_of_voting = 30;            // voting duration (days)
-        uint32_t max_duration_of_funding = 180;      // funding duration (days)
+        uint32_t max_duration_of_funding = 500;      // funding duration (days)
         uint32_t total_iteration_of_funding = 6;     //
         uint64_t primary_key() const { return 0; }
         EOSLIB_SERIALIZE( wpsenv, (total_voting_percent)(duration_of_voting)(max_duration_of_funding)(total_iteration_of_funding) )
