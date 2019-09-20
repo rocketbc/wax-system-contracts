@@ -553,7 +553,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
     regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
     regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
     "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
-    acceptprop(N(bob111111111), N(bob111111111), N(user11111111))
+    acceptprop(N(bob111111111), N(bob111111111), N(user11111111));
 
 
     create_account_with_resources(N(smallvoter11), config::system_account_name, core_sym::from_string("100.0000"), false,
