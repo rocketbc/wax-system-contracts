@@ -439,7 +439,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_reg_edit_rmv, eosio_wps_tester) try {
 setwpsenv(config::system_account_name, 5, 30, 500, 6);
 regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
 regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
-regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
 
 BOOST_REQUIRE_EQUAL(error("missing authority of user11111111"),
         regproposal(N(user22222222), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
@@ -489,7 +489,7 @@ core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
 setwpsenv(config::system_account_name, 5, 30, 500, 6);
 regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
 regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
-regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
 regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
 "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
 
@@ -523,7 +523,7 @@ regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summ
 
 produce_blocks(1);
 
-BOOST_REQUIRE_EQUAL(success(), acceptprop(N(user11111111), N(user11111111)));
+BOOST_REQUIRE_EQUAL(success(), acceptprop(N(bob111111111), N(bob111111111), N(user11111111)));
 
 produce_blocks(1);
 
@@ -550,10 +550,10 @@ BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
     setwpsenv(config::system_account_name, 5, 30, 500, 6);
     regcommittee(config::system_account_name, N(alice1111111), "categoryX", true);
     regreviewer(N(bob111111111), N(alice1111111), N(bob111111111), "bob", "bob");
-    regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin"));
+    regproposer(N(user11111111), N(user11111111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
     regproposal(N(user11111111), N(user11111111), N(alice1111111), 1, "title", "summary", "project_img_url",
     "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
-    acceptprop(N(user11111111), N(user11111111));
+    acceptprop(N(bob111111111), N(bob111111111), N(user11111111))
 
 
     create_account_with_resources(N(smallvoter11), config::system_account_name, core_sym::from_string("100.0000"), false,
@@ -589,7 +589,7 @@ core_sym::from_string("50000000.0000"), core_sym::from_string("50000000.0000"));
         approve(N(user11111111), N(user11111111), N(user11111111)));
 
     BOOST_REQUIRE_EQUAL(success(),
-        approve(N(bob111111111), N(bob111111111), N(user11111111), "reason"));
+        approve(N(bob111111111), N(bob111111111), N(user11111111)));
 
     produce_blocks(1);
 
