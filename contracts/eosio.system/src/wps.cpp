@@ -488,7 +488,7 @@ namespace eosiosystem {
         check(itr_proposal != _proposals.end(), "Proposal not found in proposal table");
         check((*itr_proposal).committee == (*itr).committee, "Reviewer is not part of this proposal's responsible committee");
         check(((*itr_proposal).status == PROPOSAL_STATUS::PENDING) || ((*itr_proposal).status == PROPOSAL_STATUS::ON_VOTE)
-                || (*itr_proposal).status == PROPOSAL_STATUS::FINISHED_VOTING), "invalid proposal status");
+                || ((*itr_proposal).status == PROPOSAL_STATUS::FINISHED_VOTING), "invalid proposal status");
 
         _proposals.modify(itr_proposal, (*itr_proposal).proposer, [&](auto& proposal){
             proposal.status = PROPOSAL_STATUS::REJECTED;
