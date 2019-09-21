@@ -307,7 +307,8 @@ public:
 };
 
 BOOST_FIXTURE_TEST_CASE(wpsenv_set, eosio_wps_tester) try {
-
+    create_account_with_resources(N(committee111), config::system_account_name, core_sym::from_string("100.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
     BOOST_REQUIRE_EQUAL(error("missing authority of eosio"), setwpsenv(N(committee111), 5, 30, 500, 6));
     BOOST_REQUIRE_EQUAL(success(), setwpsenv(config::system_account_name, 5, 30, 500, 6));
 } FC_LOG_AND_RETHROW()
@@ -321,7 +322,7 @@ core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
 
     BOOST_REQUIRE_EQUAL(error("missing authority of eosio"), regcommittee(N(committee111), N(committee111), "categoryX", true));
     BOOST_REQUIRE_EQUAL(success(), regcommittee(config::system_account_name, N(committee111), "categoryX", true));
-    BOOST_REQUIRE_EQUAL(wasm_assert_msg("This account has already been registered as a committee"), regcommittee(config::system_account_name, N(alice1111111), "categoryX", true));
+    BOOST_REQUIRE_EQUAL(wasm_assert_msg("This account has already been registered as a committee"), regcommittee(config::system_account_name, N(committee111), "categoryX", true));
 
 
     produce_blocks(1);
@@ -438,29 +439,29 @@ BOOST_FIXTURE_TEST_CASE(proposal_reg_edit_rmv, eosio_wps_tester) try {
 
 setwpsenv(config::system_account_name, 5, 30, 500, 6);
 regcommittee(config::system_account_name, N(committee111), "categoryX", true);
-regreviewer(N(reviewer1111), N(committee111), N(reviewer1111), "bob", "bob");
+regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
 regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
 
 BOOST_REQUIRE_EQUAL(error("missing authority of proposer1111"),
         regproposal(N(randomuser11), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
 
 BOOST_REQUIRE_EQUAL(success(),
         regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
 
 produce_blocks(1);
 
 BOOST_REQUIRE_EQUAL(wasm_assert_msg("This account has already registered a proposal"),
         regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
 
 auto proposal = get_proposal(N(proposer1111));
 
 BOOST_REQUIRE_EQUAL(proposal["title"], "title");
 
 editproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "First proposal", "summary", "project_img_url",
-"description", "roadmap", {"user"}, core_sym::from_string("9000.0000"), 3);
+"description", "roadmap", {"user"}, core_sym::from_string("9000.00000000"), 3);
 
 produce_blocks(1);
 
@@ -488,10 +489,10 @@ core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
 
 setwpsenv(config::system_account_name, 5, 30, 500, 6);
 regcommittee(config::system_account_name, N(committee111), "categoryX", true);
-regreviewer(N(reviewer1111), N(committee111), N(reviewer1111), "bob", "bob");
+regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
 regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
 regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
 
 BOOST_REQUIRE_EQUAL(error("missing authority of reviewer1111"),
         acceptprop(N(proposer1111), N(reviewer1111), N(proposer1111)));
@@ -519,7 +520,7 @@ BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(proposer1111), N(proposer1111)));
 produce_blocks(1);
 
 regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
 
 produce_blocks(1);
 
@@ -549,10 +550,10 @@ BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
 
     setwpsenv(config::system_account_name, 5, 30, 500, 6);
     regcommittee(config::system_account_name, N(committee111), "categoryX", true);
-    regreviewer(N(reviewer1111), N(committee111), N(reviewer1111), "bob", "bob");
+    regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
     regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
     regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
     acceptprop(N(reviewer1111), N(reviewer1111), N(proposer1111));
 
 
@@ -560,7 +561,13 @@ BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
 core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
 
     create_account_with_resources(N(bigvoter1111), config::system_account_name, core_sym::from_string("10000.0000"), false,
-core_sym::from_string("50000000.0000"), core_sym::from_string("50000000.0000"));
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+    issue_and_transfer( "smallvoter11", core_sym::from_string("1000.0000"),  config::system_account_name );
+    BOOST_REQUIRE_EQUAL( success(), stake( "smallvoter11", core_sym::from_string("100.0002"), core_sym::from_string("50.0001") ) );
+
+    issue_and_transfer( "bigvoter1111", core_sym::from_string("100000000.0000"),  config::system_account_name );
+    BOOST_REQUIRE_EQUAL( success(), stake( "bigvoter1111", core_sym::from_string("50000000.0000"), core_sym::from_string("50000000.0000") ) );
 
     produce_blocks(1);
 
