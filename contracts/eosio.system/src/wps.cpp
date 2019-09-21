@@ -284,6 +284,7 @@ namespace eosiosystem {
             const string& project_img_url,
             const string& description,
             const string& roadmap,
+            uint64_t duration,
             const vector<string>& members,
             const asset& funding_goal,
             uint32_t total_iterations
@@ -300,6 +301,7 @@ namespace eosiosystem {
         check(project_img_url.size() > 0, "URL should be more than 0 characters long");
         check(description.size() > 0, "description should be more than 0 characters long");
         check(roadmap.size() > 0, "roadmap should be more than 0 characters long");
+        check(duration > 0, "duration should be longer than 0 days");
         check(members.size() > 0, "member should be more than 0");
         check(total_iterations >= 3, "total number of iterations must be at least 3");
 
@@ -313,6 +315,7 @@ namespace eosiosystem {
         check(project_img_url.size() < 128, "URL should be shorter than 128 characters.");
         check(description.size() < 5000, "description should be shorter than 1024 characters.");
         check(roadmap.size() < 2000, "financial_roadmap should be shorter than 256 characters.");
+        check(duration <= env.max_duration_of_funding, "duration maximum exceeded");
         check(members.size() < 50, "members should be shorter than 50 characters.");
         check(funding_goal.is_valid(), "invalid quantity" );
         check(funding_goal.amount > 0, "must request positive amount" );
@@ -345,6 +348,7 @@ namespace eosiosystem {
             proposal.project_img_url = project_img_url;
             proposal.description = description;
             proposal.roadmap = roadmap;
+            proposal.duration = duration;
             proposal.members = members;
             proposal.funding_goal = funding_goal;
             proposal.total_iterations = total_iterations;

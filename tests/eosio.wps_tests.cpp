@@ -189,6 +189,7 @@ public:
                               const string& project_img_url,
                               const string& description,
                               const string& roadmap,
+                              uint64_t duration,
                               const vector<string>& members,
                               const asset& funding_goal,
                               uint32_t total_iterations) {
@@ -204,6 +205,7 @@ public:
                         ("project_img_url", project_img_url)
                         ("description", description)
                         ("roadmap", roadmap)
+                        ("duration", duration)
                         ("members", members)
                         ("funding_goal", funding_goal)
                         ("total_iterations", total_iterations)
@@ -461,7 +463,7 @@ auto proposal = get_proposal(N(proposer1111));
 BOOST_REQUIRE_EQUAL(proposal["title"], "title");
 
 editproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "First proposal", "summary", "project_img_url",
-"description", "roadmap", {"user"}, core_sym::from_string("9000.00000000"), 3);
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
 
 produce_blocks(1);
 
