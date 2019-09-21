@@ -238,8 +238,6 @@ namespace eosiosystem {
         check(funding_goal.amount > 0, "must request positive amount" );
         check(total_iterations < 100, "total iterations must be less than 100");
 
-        check(funding_goal.symbol == eosio::symbol("WAX", 8), "symbol precision mismatch");
-
         auto itr = _proposers.find(proposer.value);
         // verify that the account is a registered proposer
         check(itr != _proposers.end(), "This account is not a registered proposer");
