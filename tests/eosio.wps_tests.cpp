@@ -446,24 +446,24 @@ regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "
 
 BOOST_REQUIRE_EQUAL(error("missing authority of proposer1111"),
         regproposal(N(randomuser11), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
 
 BOOST_REQUIRE_EQUAL(success(),
         regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
 
 produce_blocks(1);
 
 BOOST_REQUIRE_EQUAL(wasm_assert_msg("This account has already registered a proposal"),
         regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3));
+                    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
 
 auto proposal = get_proposal(N(proposer1111));
 
 BOOST_REQUIRE_EQUAL(proposal["title"], "title");
 
-editproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "First proposal", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
+BOOST_REQUIRE_EQUAL(success(), editproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "First proposal", "summary", "project_img_url",
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3));
 
 produce_blocks(1);
 
@@ -494,7 +494,7 @@ regcommittee(config::system_account_name, N(committee111), "categoryX", true);
 regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
 regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
 regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
 
 BOOST_REQUIRE_EQUAL(error("missing authority of reviewer1111"),
         acceptprop(N(proposer1111), N(reviewer1111), N(proposer1111)));
@@ -522,7 +522,7 @@ BOOST_REQUIRE_EQUAL(success(), rmvproposal(N(proposer1111), N(proposer1111)));
 produce_blocks(1);
 
 regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
+"description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
 
 produce_blocks(1);
 
@@ -555,7 +555,7 @@ BOOST_FIXTURE_TEST_CASE(proposal_vote_claim, eosio_wps_tester) try {
     regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
     regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
     regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
-    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.00000000"), 3);
+    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
     acceptprop(N(reviewer1111), N(reviewer1111), N(proposer1111));
 
 
