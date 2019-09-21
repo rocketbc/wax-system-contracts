@@ -269,7 +269,7 @@ public:
     action_result approve(name sender, name reviewer, name proposer) {
         return push_action(
                 sender,
-                N(claimfunds),
+                N(approve),
                 mvo()
                         ("reviewer", reviewer)
                         ("proposer", proposer)
