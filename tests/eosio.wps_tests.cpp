@@ -258,6 +258,18 @@ public:
         );
     }
 
+    action_result rejectfund(name sender, name committeeman, name proposer, const string& reason) {
+        return push_action(
+                sender,
+                N(rejectfund),
+                mvo()
+                        ("committeeman", committeeman)
+                        ("proposer", proposer)
+                        ("reason", reason)
+
+        );
+    }
+
     action_result voteproposal(name sender, name voter_name, const std::vector<name>& proposals) {
         return push_action(
                 sender,
@@ -637,6 +649,59 @@ core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
     proposal = get_proposal(N(proposer1111));
 
     BOOST_REQUIRE_EQUAL(proposal["status"], 6);
+
+    BOOST_REQUIRE_EQUAL(wasm_assert_msg("Proposal::status is not PROPOSAL_STATUS::APPROVED"), claimfunds(N(proposer1111), N(proposer1111)));
+
+} FC_LOG_AND_RETHROW()
+
+
+BOOST_FIXTURE_TEST_CASE(proposal_reject_fund, eosio_wps_tester) try {
+
+    create_account_with_resources(N(committee111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(reviewer1111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(proposer1111), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+    create_account_with_resources(N(randomuser11), config::system_account_name, core_sym::from_string("100.0000"), false,
+    core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+    cross_15_percent_threshold();
+
+    setwpsenv(config::system_account_name, 5, 30, 500, 6);
+    regcommittee(config::system_account_name, N(committee111), "categoryX", true);
+    regreviewer(N(committee111), N(committee111), N(reviewer1111), "bob", "bob");
+    regproposer(N(proposer1111), N(proposer1111), "user", "one", "img_url", "bio", "country", "telegram", "website", "linkedin");
+    regproposal(N(proposer1111), N(proposer1111), N(committee111), 1, "title", "summary", "project_img_url",
+    "description", "roadmap", 30, {"user"}, core_sym::from_string("9000.0000"), 3);
+    acceptprop(N(reviewer1111), N(reviewer1111), N(proposer1111));
+
+    create_account_with_resources(N(bigvoter1111), config::system_account_name, core_sym::from_string("10000.0000"), false,
+core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
+
+    issue_and_transfer( "bigvoter1111", core_sym::from_string("100000000.0000"),  config::system_account_name );
+    BOOST_REQUIRE_EQUAL( success(), stake( "bigvoter1111", core_sym::from_string("50000000.0000"), core_sym::from_string("50000000.0000") ) );
+
+    produce_blocks(1);
+
+    BOOST_REQUIRE_EQUAL(success(), voteproposal(N(bigvoter1111), N(bigvoter1111), {N(proposer1111)}));
+
+    produce_blocks(1);
+
+    BOOST_REQUIRE_EQUAL(success(),
+        approve(N(reviewer1111), N(reviewer1111), N(proposer1111)));
+
+    produce_block( fc::days(11) );
+
+    BOOST_REQUIRE_EQUAL(success(), claimfunds(N(proposer1111), N(proposer1111)));
+
+    BOOST_REQUIRE_EQUAL(error("missing authority of committee111"), rejectfund(N(proposer1111), N(committee111), N(proposer1111), "reason"));
+    BOOST_REQUIRE_EQUAL(wasm_assert_msg("Proposal creator does not exist"), rejectfund(N(committee111), N(committee111), N('dne'), "reason"));
+    BOOST_REQUIRE_EQUAL(wasm_assert_msg("Proposal not found in proposal table"), rejectfund(N(committee111), N(committee111), N(committee111), "reason"));
+    BOOST_REQUIRE_EQUAL(wasm_assert_msg("Account not found in committee table"), rejectfund(N(proposer1111), N(proposer1111), N(proposer1111), "reason"));
+    BOOST_REQUIRE_EQUAL(success(), rejectfund(N(committee111), N(committee111), N(proposer1111), "reason"));
+
+    produce_block( fc::days(10) );
 
     BOOST_REQUIRE_EQUAL(wasm_assert_msg("Proposal::status is not PROPOSAL_STATUS::APPROVED"), claimfunds(N(proposer1111), N(proposer1111)));
 
