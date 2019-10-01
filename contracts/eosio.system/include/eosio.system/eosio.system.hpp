@@ -249,10 +249,6 @@ namespace eosiosystem {
       name                owner;     /// the voter
       name                proxy;     /// the proxy set by the voter, if any
       std::vector<name>   producers; /// the producers approved by this voter if no proxy set
-      /*
-       * WPS Addition
-       */
-      std::vector<name> proposals; /// the proposals approved by this voter if no proxy is set
       int64_t             staked = 0;
 
       double              unpaid_voteshare = 0;
@@ -288,9 +284,19 @@ namespace eosiosystem {
       };
 
       // explicit serialization macro is not necessary, used here only to improve compilation time
-      EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(proposals)(staked)(unpaid_voteshare)(unpaid_voteshare_last_updated)(unpaid_voteshare_change_rate)
+      EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(staked)(unpaid_voteshare)(unpaid_voteshare_last_updated)(unpaid_voteshare_change_rate)
                                     (last_claim_time)(last_vote_weight)(proxied_vote_weight)(is_proxy)(flags1)(reserved2)(reserved3) )
    };
+
+   struct [[eosio::table, eosio::contract("eosio.system")]] wps_voter {
+       name owner;
+       std::vector<name> proposals; /// the proposals approved by this voter if no proxy is set
+
+       uint64_t primary_key()const { return owner.value; }
+
+       EOSLIB_SERIALIZE( wps_voter, (owner)(proposals))
+   };
+
 
     struct [[eosio::table, eosio::contract("eosio.system")]] proposer {
         name account;
@@ -415,6 +421,12 @@ namespace eosiosystem {
     */
    typedef eosio::multi_index< "voters"_n, voter_info >  voters_table;
 
+    /**
+     * WPS voters table
+     *
+     * @details The WPS voters table stores all the `wps_voter`s instances, all WPS voters information.
+     */
+    typedef eosio::multi_index< "wpsvoters"_n, wps_voter >  wps_voters_table;
 
    /**
     * Defines producer info table added in version 1.0
@@ -525,6 +537,7 @@ namespace eosiosystem {
 
       private:
          voters_table            _voters;
+         wps_voters_table        _wpsvoters;
          producers_table         _producers;
          producers_table2        _producers2;
          global_state_singleton  _global;

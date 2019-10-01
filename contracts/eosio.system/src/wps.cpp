@@ -669,6 +669,8 @@ namespace eosiosystem {
         auto voter = _voters.find( voter_name.value );
         check( voter != _voters.end(), "user must stake before they can vote" ); /// staking creates voter object
 
+        auto wpsvoter = _wpsvoters.find( voter_name.value );
+
         /**
          * The first time someone votes we calculate and set last_vote_weight, since they cannot unstake until
          * after total_activated_stake hits threshold, we can use last_vote_weight to determine that this is
@@ -688,10 +690,12 @@ namespace eosiosystem {
 
         std::map<name, std::pair<double, bool /*new*/> > proposal_deltas;
         if ( voter->last_vote_weight > 0 ) {
-            for( const auto& p : voter->proposals ) {
+            if(wpsvoter != _wpsvoters.end()){
+                for( const auto& p : wpsvoter->proposals ) {
                     auto& d = proposal_deltas[p];
                     d.first -= voter->last_vote_weight;
                     d.second = false;
+                }
             }
         }
 
@@ -746,8 +750,20 @@ namespace eosiosystem {
 
         _voters.modify( voter, same_payer, [&]( auto& av ) {
             av.last_vote_weight = new_vote_weight;
-            av.proposals = proposals;
+            //av.proposals = proposals;
         });
+
+        if(wpsvoter == _wpsvoters.end()){
+            _wpsvoters.emplace(voter_name, [&](auto& wv){
+                wv.owner = voter_name;
+                wv.proposals = proposals;
+            });
+        }
+        else{
+            _wpsvoters.modify(wpsvoter, same_payer, [&](auto& wv){
+               wv.proposals = proposals;
+            });
+        }
     }
 
 } /// namespace eosiosystem
