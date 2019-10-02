@@ -291,10 +291,11 @@ namespace eosiosystem {
    struct [[eosio::table, eosio::contract("eosio.system")]] wps_voter {
        name owner;
        std::vector<name> proposals; /// the proposals approved by this voter if no proxy is set
+       double last_vote_weight = 0;
 
        uint64_t primary_key()const { return owner.value; }
 
-       EOSLIB_SERIALIZE( wps_voter, (owner)(proposals))
+       EOSLIB_SERIALIZE( wps_voter, (owner)(proposals)(last_vote_weight))
    };
 
 
