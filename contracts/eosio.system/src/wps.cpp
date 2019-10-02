@@ -681,9 +681,7 @@ namespace eosiosystem {
         }
 
         std::map<name, std::pair<double, bool /*new*/> > proposal_deltas;
-
-        auto wpsvoter = _wpsvoters.find( voter.value );
-
+        
         if(wpsvoter != _wpsvoters.end()){
             if ( wpsvoter->last_vote_weight > 0 ) {
                 for( const auto& p : wpsvoter->proposals ) {
