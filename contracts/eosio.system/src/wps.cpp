@@ -646,7 +646,7 @@ namespace eosiosystem {
         });
     }
 
-    double stake2vote2( int64_t staked ) {
+    double stake2vote_wps( int64_t staked ) {
         // From voting.cpp
         /// TODO subtract 2080 brings the large numbers closer to this decade
         double weight = int64_t( (current_time_point().sec_since_epoch() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7) )  / double( 13 );
@@ -671,26 +671,21 @@ namespace eosiosystem {
 
         auto wpsvoter = _wpsvoters.find( voter_name.value );
 
-        /**
-         * The first time someone votes we calculate and set last_vote_weight, since they cannot unstake until
-         * after total_activated_stake hits threshold, we can use last_vote_weight to determine that this is
-         * their first vote and should consider their stake activated.
-         */
-        if( voter->last_vote_weight <= 0.0 ) {
-            _gstate.total_activated_stake += voter->staked;
-            if( _gstate.total_activated_stake >= min_activated_stake && _gstate.thresh_activated_stake_time == time_point() ) {
-                _gstate.thresh_activated_stake_time = current_time_point();
-            }
-        }
 
-        auto new_vote_weight = stake2vote2( voter->staked );
+        check( _gstate.total_activated_stake >= min_activated_stake,
+               "cannot update wps votes until the chain is activated (at least 15% of all tokens participate in voting)" );
+
+        auto new_vote_weight = stake2vote_wps( voter->staked );
         if( voter->is_proxy ) {
             check(false, "Proxies can't vote for worker proposals");
         }
 
         std::map<name, std::pair<double, bool /*new*/> > proposal_deltas;
-        if ( voter->last_vote_weight > 0 ) {
-            if(wpsvoter != _wpsvoters.end()){
+
+        auto wpsvoter = _wpsvoters.find( voter.value );
+
+        if(wpsvoter != _wpsvoters.end()){
+            if ( wpsvoter->last_vote_weight > 0 ) {
                 for( const auto& p : wpsvoter->proposals ) {
                     auto& d = proposal_deltas[p];
                     d.first -= voter->last_vote_weight;
@@ -732,7 +727,7 @@ namespace eosiosystem {
                         }
                     });
 
-                    auto total_activated_vote = stake2vote2(_gstate.total_activated_stake);
+                    auto total_activated_vote = stake2vote_wps(_gstate.total_activated_stake);
                     if((*pitr).total_votes > (double) (total_activated_vote / ((double) (100/wps_env.total_voting_percent)))){
                         if((*pitr).status == PROPOSAL_STATUS::ON_VOTE){
                             _proposals.modify( pitr, same_payer, [&]( auto& p ) {
@@ -748,15 +743,11 @@ namespace eosiosystem {
             }
         }
 
-        _voters.modify( voter, same_payer, [&]( auto& av ) {
-            av.last_vote_weight = new_vote_weight;
-            //av.proposals = proposals;
-        });
-
         if(wpsvoter == _wpsvoters.end()){
             _wpsvoters.emplace(voter_name, [&](auto& wv){
                 wv.owner = voter_name;
                 wv.proposals = proposals;
+                wv.last_vote_weight = new_vote_weight;
             });
         }
         else{
