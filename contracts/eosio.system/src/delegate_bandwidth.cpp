@@ -440,7 +440,7 @@ namespace eosiosystem {
 
       auto wps_voter_itr = _wpsvoters.find( voter.value );
       if(wps_voter_itr != _wpsvoters.end()){
-         update_wps_votes( voter, wps_voter_itr->proposals, false);
+         update_wps_votes( voter, wps_voter_itr->proposals);
       }
    }
 

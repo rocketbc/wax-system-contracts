@@ -1183,7 +1183,7 @@ namespace eosiosystem {
          void update_ram_supply();
 
          //defined in wps.cpp
-         void update_wps_votes( const name& voter, const std::vector<name>& proposals, bool voting);
+         void update_wps_votes( const name& voter, const std::vector<name>& proposals);
 
          // defined in delegate_bandwidth.cpp
          void changebw( name from, const name& receiver,

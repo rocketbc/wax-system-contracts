@@ -656,10 +656,10 @@ namespace eosiosystem {
     void system_contract::voteproposal( const name& voter_name, const std::vector<name>& proposals ) {
         require_auth( voter_name );
         // vote_stake_updater( voter_name );
-        update_wps_votes( voter_name, proposals, true );
+        update_wps_votes( voter_name, proposals );
     }
 
-    void system_contract::update_wps_votes( const name& voter_name, const std::vector<name>& proposals, bool voting){
+    void system_contract::update_wps_votes( const name& voter_name, const std::vector<name>& proposals){
         //validate input
         check( proposals.size() <= 1, "attempt to vote for too many proposals" );
         for( size_t i = 1; i < proposals.size(); ++i ) {
@@ -686,7 +686,7 @@ namespace eosiosystem {
             if ( wpsvoter->last_vote_weight > 0 ) {
                 for( const auto& p : wpsvoter->proposals ) {
                     auto& d = proposal_deltas[p];
-                    d.first -= voter->last_vote_weight;
+                    d.first -= wpsvoter->last_vote_weight;
                     d.second = false;
                 }
             }
@@ -751,6 +751,7 @@ namespace eosiosystem {
         else{
             _wpsvoters.modify(wpsvoter, same_payer, [&](auto& wv){
                wv.proposals = proposals;
+               wv.last_vote_weight = new_vote_weight;
             });
         }
     }
